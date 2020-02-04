@@ -1196,6 +1196,15 @@ func (scope *Scope) createTable() *Scope {
 }
 
 func (scope *Scope) createView() *Scope {
+	var tags []string
+
+	for _, field := range scope.GetModelStruct().StructFields {
+		td := field.DBName
+		tags = append(tags, td)
+	}
+
+	fmt.Println(tags)
+	
 	return scope
 }
 
