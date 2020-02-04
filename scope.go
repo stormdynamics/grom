@@ -1195,6 +1195,10 @@ func (scope *Scope) createTable() *Scope {
 	return scope
 }
 
+func (scope *Scope) createView() *Scope {
+	return scope
+}
+
 func (scope *Scope) dropTable() *Scope {
 	scope.Raw(fmt.Sprintf("DROP TABLE %v", scope.QuotedTableName())).Exec()
 	return scope
@@ -1274,6 +1278,27 @@ func (scope *Scope) autoMigrate() *Scope {
 			scope.createJoinTable(field)
 		}
 		scope.autoIndex()
+	}
+	return scope
+}
+
+func (scope *Scope) autoMigrateView() *Scope {
+	viewTableName := scope.TableName()
+	quotedTableName := scope.QuotedTableName()
+
+	if !scope.Dialect().HasTable(viewTableName) {
+		scope.createView()
+	} else {
+		for _, field := range scope.GetModelStruct().StructFields {
+			if !scope.Dialect().HasColumn(viewTableName, field.DBName) {
+				if field.IsNormal {
+					//sqlTag := scope.Dialect().DataTypeOf(field)
+					//scope.Raw(fmt.Sprintf("ALTER TABLE %v ADD %v %v;", quotedTableName, scope.Quote(field.DBName), sqlTag)).Exec()
+				}
+			}
+			//scope.createJoinTable(field)
+		}
+		//scope.autoIndex()
 	}
 	return scope
 }

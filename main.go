@@ -686,6 +686,14 @@ func (s *DB) AutoMigrate(values ...interface{}) *DB {
 	return db
 }
 
+func (s *DB) AutoMigrateView(values ...interface{}) *DB {
+	db := s.Unscoped()
+	for _, value := range values {
+		db = db.NewScope(value).autoMigrateView().db
+	}
+	return db
+}
+
 // ModifyColumn modify column to type
 func (s *DB) ModifyColumn(column string, typ string) *DB {
 	scope := s.NewScope(s.Value)
