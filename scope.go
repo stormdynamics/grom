@@ -1284,7 +1284,7 @@ func (scope *Scope) autoMigrate() *Scope {
 
 func (scope *Scope) autoMigrateView() *Scope {
 	viewTableName := scope.TableName()
-	quotedTableName := scope.QuotedTableName()
+	//quotedTableName := scope.QuotedTableName()
 
 	if !scope.Dialect().HasTable(viewTableName) {
 		scope.createView()
