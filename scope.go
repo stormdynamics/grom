@@ -1197,14 +1197,68 @@ func (scope *Scope) createTable() *Scope {
 
 func (scope *Scope) createView() *Scope {
 	var tags []string
+	var tables map[string]int = make(map[string]int)
+	var wheres []string
+	var request []string
+	var tdn []string
+
+	vn := scope.TableName()
+	tn := strings.TrimSuffix(vn, "_views")
 
 	for _, field := range scope.GetModelStruct().StructFields {
-		td := field.DBName
-		tags = append(tags, td)
+		if value, ok := field.TagSettingsGet("ALTNAME"); ok {
+			tdn  = strings.Split(value, ".")
+		} else {
+			tdn  = strings.Split(field.DBName, ".")
+		}
+
+		if len(tdn) > 2 {
+			continue
+		}
+
+		if len(tdn) == 1 {
+			if value, ok := field.TagSettingsGet("TABLE"); ok {
+				tdn = strings.Split(value + "." + tdn[0], ".")
+			} else {
+				tdn = strings.Split(tn + "." + tdn[0], ".")
+			}
+		}
+
+		tdn[0] = scope.Quote(tdn[0])
+		tdn[1] = scope.Quote(tdn[1])
+
+		tables[tdn[0]] = 1
+
+		tags = append(tags, strings.Join(tdn, ".") + " AS " + tdn[1])
+
+		if value, ok := field.TagSettingsGet("WHERE"); ok {
+			wtdn := strings.Split(value, ".")
+			if len(wtdn) <= 2 {
+				if len(wtdn) == 1 {
+					wtdn = strings.Split(tn + "." + value, ".")
+				}
+				wtdn[0] = scope.Quote(wtdn[0])
+				wtdn[1] = scope.Quote(wtdn[1])
+
+				wheres = append(wheres, strings.Join(tdn, ".") + "=" + strings.Join(wtdn, "."))
+			}
+		}
 	}
 
-	fmt.Println(tags)
-	
+	tablesarr := make([]string, 0, len(tables))
+
+	for k := range tables {
+		tablesarr = append(tablesarr, k)
+	}
+
+	request = append(request, "CREATE VIEW", scope.Quote(vn), "AS SELECT",  strings.Join(tags, ", "), "FROM", strings.Join(tablesarr, ", "))
+
+	if len(wheres) > 0 {
+		request = append(request, "WHERE", strings.Join(wheres, " AND "))
+	}
+
+	scope.Raw(strings.Join(request, " ")).Exec()
+
 	return scope
 }
 
