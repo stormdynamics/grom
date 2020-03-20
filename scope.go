@@ -1207,9 +1207,9 @@ func (scope *Scope) createView() *Scope {
 
 	for _, field := range scope.GetModelStruct().StructFields {
 		if value, ok := field.TagSettingsGet("ALTNAME"); ok {
-			tdn  = strings.Split(value, ".")
+			tdn = strings.Split(value, ".")
 		} else {
-			tdn  = strings.Split(field.DBName, ".")
+			tdn = strings.Split(field.DBName, ".")
 		}
 
 		if len(tdn) > 2 {
@@ -1229,7 +1229,13 @@ func (scope *Scope) createView() *Scope {
 
 		tables[tdn[0]] = 1
 
-		tags = append(tags, strings.Join(tdn, ".") + " AS " + tdn[1])
+		if value, ok := field.TagSettingsGet("AS"); ok {
+			name := tdn[1]
+			tdn[1] = value
+			tags = append(tags, strings.Join(tdn, ".") + " AS " + name)
+		} else {
+			tags = append(tags, strings.Join(tdn, ".") + " AS " + tdn[1])
+		}
 
 		if value, ok := field.TagSettingsGet("WHERE"); ok {
 			wtdn := strings.Split(value, ".")
