@@ -1273,6 +1273,11 @@ func (scope *Scope) dropTable() *Scope {
 	return scope
 }
 
+func (scope *Scope) dropView() *Scope {
+	scope.Raw(fmt.Sprintf("DROP VIEW %v", scope.QuotedTableName())).Exec()
+	return scope
+}
+
 func (scope *Scope) modifyColumn(column string, typ string) {
 	scope.db.AddError(scope.Dialect().ModifyColumn(scope.QuotedTableName(), scope.Quote(column), typ))
 }

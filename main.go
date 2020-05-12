@@ -648,6 +648,18 @@ func (s *DB) DropTable(values ...interface{}) *DB {
 	return db
 }
 
+func (s *DB) DropView(values ...interface{}) *DB {
+	db := s.clone()
+	for _, value := range values {
+		if tableName, ok := value.(string); ok {
+			db = db.Table(tableName)
+		}
+
+		db = db.NewScope(value).dropView().db
+	}
+	return db
+}
+
 // DropTableIfExists drop table if it is exist
 func (s *DB) DropTableIfExists(values ...interface{}) *DB {
 	db := s.clone()
